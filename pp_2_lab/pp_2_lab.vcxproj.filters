@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pp_2_lab.cpp">
+    <ClCompile Include="laba2.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -23,5 +23,10 @@
     <ClInclude Include="Header.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="makefile.txt">
+      <Filter>Файлы заголовков</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -9,37 +9,41 @@
 #include <atomic>
 #include <sstream>
 
-std::mutex consoleMutex;
-
+std::mutex consoleMutex; 
 class ThreadPool {
 public:
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+    ThreadPool(ThreadPool&&) = delete;
+    ThreadPool& operator=(ThreadPool&&) = delete;
+
     ThreadPool(size_t numThreads) {
         {
-            std::lock_guard<std::mutex> lock(consoleMutex);
+            std::lock_guard<std::mutex> lock(consoleMutex); // синхронизаци€ потоков
             std::cout << "—оздаЄтс€ пул потоков с количеством потоков: " << numThreads << std::endl;
         }
 
         for (size_t i = 0; i < numThreads; ++i) {
-            workers.emplace_back([this, i] {
+            workers.emplace_back([this, i] { // создание рабочих потоков
                 while (true) {
                     std::function<void()> task;
 
                     {
-                        std::unique_lock<std::mutex> lock(this->queueMutex);
-                        this->condition.wait(lock, [this] {
-                            return this->stop || !this->tasks.empty();
+                        std::unique_lock<std::mutex> lock(this->queueMutex); // блокировка потока
+                        this->condition.wait(lock, [this] { // ожидание condition 
+                            return this->stop || !this->tasks.empty(); // 2 услови€ выхода из ожидани€
                             });
 
-                        if (this->stop && this->tasks.empty()) {
+                        if (this->stop && this->tasks.empty()) { // завершение работы потока
                             {
-                                std::lock_guard<std::mutex> consoleLock(consoleMutex);
+                                std::lock_guard<std::mutex> consoleLock(consoleMutex); // без блокироки сообщени€ могут смешатьс€
                                 std::cout << "ѕоток " << std::this_thread::get_id() << " завершает работу." << std::endl;
                             }
                             return;
                         }
 
                         if (!this->tasks.empty()) {
-                            task = std::move(this->tasks.front());
+                            task = std::move(this->tasks.front()); // ссылка на 1 элемент
                             this->tasks.pop();
                             ++activeTasks; // +1 активна€ задача
                         }
@@ -50,7 +54,7 @@ public:
                             std::lock_guard<std::mutex> consoleLock(consoleMutex);
                             std::cout << "ѕоток " << std::this_thread::get_id() << " выполн€ет задачу." << std::endl;
                         }
-                        task();
+                        task(); // вызываетс€ л€мбда-функци€
 
                         --activeTasks; // -1 активна€ задача
 
@@ -66,18 +70,21 @@ public:
 
     ~ThreadPool() {
         {
-            std::unique_lock<std::mutex> lock(queueMutex);
-            stop = true;
+            std::unique_lock<std::mutex> lock(queueMutex); // блок мьютекса queue - мьютекс очереди задач, unique_lock блокает данный мьютекс
+            stop = true; // флаг блокировки
         }
-        condition.notify_all();
+        condition.notify_all(); // увед всех потоков о завершении, потоки могут чекнуть stop
+
+
+        // важен вызов дл€ каждого, чтобы избежать ошибок
         for (std::thread& worker : workers) {
             if (worker.joinable()) {
-                worker.join();
+                worker.join(); // блокает текущий поток, пока worker не завершитс€
             }
         }
 
         {
-            std::lock_guard<std::mutex> lock(consoleMutex);
+            std::lock_guard<std::mutex> lock(consoleMutex); // снова блокаем консольный мьютекс, не нужен юник, его возможности излишни
             std::cout << "¬се потоки завершены, пул потоков уничтожен." << std::endl;
         }
     }
@@ -85,14 +92,14 @@ public:
     template<class F>
     void enqueue(F&& f) {
         {
-            std::lock_guard<std::mutex> lock(queueMutex);
-            tasks.emplace(std::forward<F>(f));
+            std::lock_guard<std::mutex> lock(queueMutex); // блокаем, чтобы не допустить состо€ние гонки
+            tasks.emplace(std::forward<F>(f)); // добавление задачи
         }
-        condition.notify_one();
+        condition.notify_one(); // увед о по€влении задачи
     }
 
     void waitForCompletion() { // новый метод дл€ ожидани€ завершени€ задач
-        std::unique_lock<std::mutex> lock(queueMutex);
+        std::unique_lock<std::mutex> lock(queueMutex); // блокирока до определенного момента
         completionCondition.wait(lock, [this] {
             return activeTasks == 0 && tasks.empty();
             });

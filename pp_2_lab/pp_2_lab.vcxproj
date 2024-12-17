@@ -134,7 +134,10 @@
     <ClInclude Include="Header.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Downloads\Telegram Desktop\makefile" />
+    <None Include="..\..\..\..\Downloads\Telegram Desktop\Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Makefile.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -28,8 +28,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Downloads\Telegram Desktop\makefile">
+    <None Include="..\..\..\..\Downloads\Telegram Desktop\Makefile">
       <Filter>Файлы заголовков</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Makefile.txt" />
   </ItemGroup>
 </Project>

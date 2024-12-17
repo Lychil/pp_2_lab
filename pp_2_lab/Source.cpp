@@ -86,4 +86,3 @@ void ThreadPool::waitForCompletion() { // новый метод для ожидания завершения за
      });
 }
 
-

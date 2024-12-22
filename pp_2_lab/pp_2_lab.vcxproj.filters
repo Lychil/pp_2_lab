@@ -18,6 +18,9 @@
     <ClCompile Include="laba2.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
@@ -25,8 +28,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="makefile.txt">
+    <None Include="..\..\..\..\Downloads\Telegram Desktop\Makefile">
       <Filter>Файлы заголовков</Filter>
-    </Text>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Makefile.txt" />
   </ItemGroup>
 </Project>

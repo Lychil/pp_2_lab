@@ -54,15 +54,13 @@ ThreadPool::~ThreadPool() {
         stop = true;
     }
 
-    for (size_t i = 0; i < workers.size(); ++i) {
 #if defined(_WIN32) || defined(_WIN64)
+    // Уведомляем все потоки о завершении
+    for (size_t i = 0; i < workers.size(); ++i) {
         ReleaseSemaphore(taskSemaphore, 1, nullptr);
-#else
-        sem_post(&taskSemaphore);
-#endif
     }
 
-#if defined(_WIN32) || defined(_WIN64)
+    // Для Windows ждём завершения всех потоков
     for (auto& threadHandle : workers) {
         WaitForSingleObject(threadHandle, INFINITE);
         CloseHandle(threadHandle);
@@ -71,10 +69,15 @@ ThreadPool::~ThreadPool() {
     CloseHandle(taskSemaphore);
     CloseHandle(completionSemaphore);
 #else
-    for (auto& thread : threads) {
-        pthread_join(thread, nullptr);
+    for (size_t i = 0; i < threads.size(); ++i) {
+        sem_post(&taskSemaphore); // Уведомляем поток через семафор
     }
 
+    for (auto& thread : threads) {
+        pthread_join(thread, nullptr); // Ожидаем завершения потока
+    }
+
+    // Уничтожаем семафоры
     sem_destroy(&taskSemaphore);
     sem_destroy(&completionSemaphore);
 #endif
@@ -84,6 +87,7 @@ ThreadPool::~ThreadPool() {
         std::cout << "Все потоки завершены, пул потоков уничтожен." << std::endl;
     }
 }
+
 
 void ThreadPool::enqueue(std::function<void()> task) {
     {

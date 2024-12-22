@@ -13,6 +13,7 @@
 #include <Windows.h>  // Для Windows
 #else
 #include <pthread.h>   // Для Linux
+#include <semaphore.h>
 #endif
 
 extern std::mutex consoleMutex;

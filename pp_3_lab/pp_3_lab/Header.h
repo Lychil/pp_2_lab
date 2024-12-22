@@ -5,14 +5,14 @@
 #include <queue>
 #include <functional>
 #include <mutex>
-#include <condition_variable>
+#include <cmath>
 #include <atomic>
 #include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <Windows.h>  // для Windows
+#include <Windows.h>  // Для Windows
 #else
-#include <pthread.h>   // для Linux
+#include <pthread.h>   // Для Linux
 #endif
 
 extern std::mutex consoleMutex;
@@ -20,7 +20,6 @@ extern std::mutex consoleMutex;
 class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
-
     ~ThreadPool();
 
     ThreadPool(const ThreadPool&) = delete;
@@ -29,31 +28,23 @@ public:
     ThreadPool& operator=(ThreadPool&&) = delete;
 
     void enqueue(std::function<void()> task);
-
     void waitForCompletion();
 
 private:
-    void processTasks();
+    void workerLoop();
 
 #if defined(_WIN32) || defined(_WIN64)
-    static unsigned __stdcall run(void* param);  // Windows
+    std::vector<HANDLE> workers;
+    HANDLE taskSemaphore;                 // Семафор для задач
+    HANDLE completionSemaphore;           // Семафор для завершения задач
 #else
-    static void* run(void* param);  // Linux
-#endif
-
-    // Для Windows используем std::thread
-#if defined(_WIN32) || defined(_WIN64)
-    std::vector<std::thread> workers;
-#else
-    // Для Linux используем pthread_t
     std::vector<pthread_t> threads;
+    sem_t taskSemaphore;                  // Семафор для задач
+    sem_t completionSemaphore;            // Семафор для завершения задач
 #endif
 
     std::queue<std::function<void()>> tasks;
-
     std::mutex queueMutex;
-    std::condition_variable condition;
     std::atomic<bool> stop{ false };
     std::atomic<int> activeTasks{ 0 };
-    std::condition_variable completionCondition;
 };

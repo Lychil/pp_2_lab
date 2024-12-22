@@ -5,6 +5,7 @@
 #include <queue>
 #include <functional>
 #include <mutex>
+#include <cmath>
 #include <condition_variable>
 #include <atomic>
 #include <sstream>

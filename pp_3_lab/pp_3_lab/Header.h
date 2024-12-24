@@ -12,7 +12,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>  // Для Windows
-#else
+#elif defined(__linux__)
 #include <pthread.h>   // Для Linux
 #include <semaphore.h>
 #endif
@@ -39,7 +39,7 @@ private:
     std::vector<HANDLE> workers;
     HANDLE taskSemaphore;                 // Семафор для задач
     HANDLE completionSemaphore;           // Семафор для завершения задач
-#else
+#elif defined(__linux__)
     std::vector<pthread_t> threads;
     sem_t taskSemaphore;                  // Семафор для задач
     sem_t completionSemaphore;            // Семафор для завершения задач

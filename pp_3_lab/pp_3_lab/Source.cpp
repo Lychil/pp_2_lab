@@ -37,7 +37,7 @@ ThreadPool::ThreadPool(size_t numThreads) {
             throw std::runtime_error("Failed to create a thread. Error: " + std::to_string(error));
         }
     }
-#else
+#elif defined(__linux__)
     if (sem_init(&taskSemaphore, 0, 0) != 0) {
         int error = errno;
         throw std::runtime_error("Failed to initialize taskSemaphore. Error: " + std::string(strerror(error)));
@@ -82,7 +82,7 @@ ThreadPool::~ThreadPool() {
 
     CloseHandle(taskSemaphore);
     CloseHandle(completionSemaphore);
-#else
+#elif defined(__linux__)
     for (size_t i = 0; i < threads.size(); ++i) {
         sem_post(&taskSemaphore); // Уведомляем поток через семафор
     }
@@ -111,7 +111,7 @@ void ThreadPool::enqueue(std::function<void()> task) {
 
 #if defined(_WIN32) || defined(_WIN64)
     ReleaseSemaphore(taskSemaphore, 1, nullptr);
-#else
+#elif defined(__linux__)
     sem_post(&taskSemaphore);
 #endif
 }
@@ -124,7 +124,7 @@ void ThreadPool::waitForCompletion() {
 
 #if defined(_WIN32) || defined(_WIN64)
         WaitForSingleObject(completionSemaphore, INFINITE);
-#else
+#elif defined(__linux__)
         sem_wait(&completionSemaphore);
 #endif
     }
@@ -134,7 +134,7 @@ void ThreadPool::workerLoop() {
     while (true) {
 #if defined(_WIN32) || defined(_WIN64)
         WaitForSingleObject(taskSemaphore, INFINITE);
-#else
+#elif defined(__linux__)
         sem_wait(&taskSemaphore);
 #endif
 
@@ -166,7 +166,7 @@ void ThreadPool::workerLoop() {
 
 #if defined(_WIN32) || defined(_WIN64)
             ReleaseSemaphore(completionSemaphore, 1, nullptr);
-#else
+#elif defined(__linux__)
             sem_post(&completionSemaphore);
 #endif
         }

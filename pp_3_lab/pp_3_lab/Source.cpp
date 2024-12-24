@@ -10,10 +10,15 @@ ThreadPool::ThreadPool(size_t numThreads) {
 
 #if defined(_WIN32) || defined(_WIN64)
     taskSemaphore = CreateSemaphore(nullptr, 0, INT_MAX, nullptr);
-    completionSemaphore = CreateSemaphore(nullptr, 0, INT_MAX, nullptr);
+    if (!taskSemaphore) {
+        DWORD error = GetLastError();
+        throw std::runtime_error("Failed to create taskSemaphore. Error: " + std::to_string(error));
+    }
 
-    if (!taskSemaphore || !completionSemaphore) {
-        throw std::runtime_error("Failed to create semaphores.");
+    completionSemaphore = CreateSemaphore(nullptr, 0, INT_MAX, nullptr);
+    if (!completionSemaphore) {
+        DWORD error = GetLastError();
+        throw std::runtime_error("Failed to create completionSemaphore. Error: " + std::to_string(error));
     }
 
     for (size_t i = 0; i < numThreads; ++i) {
@@ -28,20 +33,29 @@ ThreadPool::ThreadPool(size_t numThreads) {
             workers.push_back(threadHandle);
         }
         else {
-            throw std::runtime_error("Failed to create a stream.");
+            DWORD error = GetLastError();
+            throw std::runtime_error("Failed to create a thread. Error: " + std::to_string(error));
         }
     }
 #else
-    sem_init(&taskSemaphore, 0, 0);
-    sem_init(&completionSemaphore, 0, 0);
+    if (sem_init(&taskSemaphore, 0, 0) != 0) {
+        int error = errno;
+        throw std::runtime_error("Failed to initialize taskSemaphore. Error: " + std::string(strerror(error)));
+    }
+
+    if (sem_init(&completionSemaphore, 0, 0) != 0) {
+        int error = errno;
+        throw std::runtime_error("Failed to initialize completionSemaphore. Error: " + std::string(strerror(error)));
+        }
 
     for (size_t i = 0; i < numThreads; ++i) {
         pthread_t thread;
         if (pthread_create(&thread, nullptr, [](void* param) -> void* {
             static_cast<ThreadPool*>(param)->workerLoop();
             return nullptr;
-            }, this) != 0) {
-            throw std::runtime_error("Failed to create a stream.");
+        }, this) != 0) {
+            int error = errno;
+            throw std::runtime_error("Failed to create a thread. Error: " + std::string(strerror(error)));
         }
         threads.push_back(thread);
     }

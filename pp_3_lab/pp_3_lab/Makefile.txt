@@ -1,0 +1,21 @@
+CC = g++
+# -Wall включает большинство предупреждений компилятора 
+# -g используется для включения отладочной информации в исполняемый файл(дает возможность запускать отладчик)
+CFLAGS = -Wall -g # Определение флагов компиляции для С++
+# Название скомпилированного файла
+EXECUTABLE = comp
+INSTALL_DIR = . 
+
+all: $(EXECUTABLE) # Определяет что будет создан файл EXECUTABLE
+
+$(EXECUTABLE): pp_3_lab.cpp Source.cpp Header.h
+	$(CC) $(CFLAGS) pp_3_lab.cpp Source.cpp -o $(EXECUTABLE) # создание файла
+
+install: $(EXECUTABLE)
+	mkdir -p $(INSTALL_DIR)
+	cp $(EXECUTABLE) $(INSTALL_DIR)
+
+clean:
+	rm -f $(EXECUTABLE)
+
+.PHONY: all install clean

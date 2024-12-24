@@ -1,7 +1,6 @@
 ﻿#include "Header.h"
 
 int main() {
-    setlocale(LC_ALL, "ru");
 
     size_t numThreads = std::thread::hardware_concurrency();
     if (numThreads == 0) {
@@ -10,10 +9,10 @@ int main() {
 
     {
         std::lock_guard<std::mutex> lock(consoleMutex);
-        std::cout << "Программа демонстрирует работу пула потоков.\n"
-            << "Количество потоков: " << numThreads << "\n"
-            << "Каждая задача выводит идентификатор потока и свой номер.\n"
-            << "Запуск..." << std::endl;
+        std::cout << "The program demonstrates the operation of a thread pool.\n"
+            << "Number of threads:" << numThreads << "\n"
+            << "Each task outputs a thread ID and its own number.\n"
+            << "Launch..." << std::endl;
     }
 
     ThreadPool pool(numThreads);
@@ -21,7 +20,7 @@ int main() {
     for (int i = 0; i < 10; ++i) {
         pool.enqueue([i] {
             std::stringstream ss;
-            ss << "Задача " << i << " обрабатывается потоком " << std::this_thread::get_id();
+            ss << "Task" << i << " processed by a thread " << std::this_thread::get_id();
             {
                 std::lock_guard<std::mutex> lock(consoleMutex);
                 std::cout << ss.str() << std::endl;
@@ -40,7 +39,7 @@ int main() {
 
     {
         std::lock_guard<std::mutex> lock(consoleMutex);
-        std::cout << "Программа завершена. Все задачи выполнены." << std::endl;
+        std::cout << "The program is completed. All tasks are completed." << std::endl;
     }
 
     return 0;

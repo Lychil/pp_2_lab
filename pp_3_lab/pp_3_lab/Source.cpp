@@ -5,7 +5,7 @@ std::mutex consoleMutex;
 ThreadPool::ThreadPool(size_t numThreads) {
     {
         std::lock_guard<std::mutex> lock(consoleMutex);
-        std::cout << "Создаётся пул потоков с количеством потоков: " << numThreads << std::endl;
+        std::cout << "A thread pool is created with the number of threads:" << numThreads << std::endl;
     }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -13,7 +13,7 @@ ThreadPool::ThreadPool(size_t numThreads) {
     completionSemaphore = CreateSemaphore(nullptr, 0, INT_MAX, nullptr);
 
     if (!taskSemaphore || !completionSemaphore) {
-        throw std::runtime_error("Не удалось создать семафоры.");
+        throw std::runtime_error("Failed to create semaphores.");
     }
 
     for (size_t i = 0; i < numThreads; ++i) {
@@ -28,7 +28,7 @@ ThreadPool::ThreadPool(size_t numThreads) {
             workers.push_back(threadHandle);
         }
         else {
-            throw std::runtime_error("Не удалось создать поток.");
+            throw std::runtime_error("Failed to create a stream.");
         }
     }
 #else
@@ -41,7 +41,7 @@ ThreadPool::ThreadPool(size_t numThreads) {
             static_cast<ThreadPool*>(param)->workerLoop();
             return nullptr;
             }, this) != 0) {
-            throw std::runtime_error("Не удалось создать поток.");
+            throw std::runtime_error("Failed to create a stream.");
         }
         threads.push_back(thread);
     }
@@ -84,7 +84,7 @@ ThreadPool::~ThreadPool() {
 
     {
         std::lock_guard<std::mutex> lock(consoleMutex);
-        std::cout << "Все потоки завершены, пул потоков уничтожен." << std::endl;
+        std::cout << "All threads are completed, the thread pool is destroyed." << std::endl;
     }
 }
 
@@ -127,7 +127,7 @@ void ThreadPool::workerLoop() {
         if (stop) {
             {
                 std::lock_guard<std::mutex> lock(consoleMutex);
-                std::cout << "Поток " << std::this_thread::get_id() << " завершает работу." << std::endl;
+                std::cout << "Stream" << std::this_thread::get_id() << " completes the work." << std::endl;
             }
             return;
         }
@@ -145,7 +145,7 @@ void ThreadPool::workerLoop() {
         if (task) {
             {
                 std::lock_guard<std::mutex> lock(consoleMutex);
-                std::cout << "Поток " << std::this_thread::get_id() << " выполняет задачу." << std::endl;
+                std::cout << "Stream " << std::this_thread::get_id() << " performs the task." << std::endl;
             }
             task();
             --activeTasks;

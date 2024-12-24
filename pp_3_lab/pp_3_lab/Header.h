@@ -6,6 +6,7 @@
 #include <functional>
 #include <mutex>
 #include <cmath>
+#include <cstring>
 #include <atomic>
 #include <sstream>
 
